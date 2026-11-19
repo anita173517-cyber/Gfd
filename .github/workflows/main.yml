@@ -58,12 +58,6 @@ jobs:
             fi
           fi
 
-          # Ensure real org.json JVM library is available for host unit tests
-          if ! grep -q 'org.json:json' app/build.gradle.kts; then
-            sed -i 's|testImplementation("junit:junit:4.13.2")|testImplementation("junit:junit:4.13.2")\n    testImplementation("org.json:json:20240303")|' app/build.gradle.kts
-            echo "Added org.json:json:20240303 for JVM unit tests."
-          fi
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
