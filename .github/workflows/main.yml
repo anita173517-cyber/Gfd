@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Locate or extract Android project
+      - name: Locate or extract Android project & auto-patch syntax
         shell: bash
         run: |
           set -euo pipefail
@@ -57,6 +57,25 @@ jobs:
               exit 1
             fi
           fi
+
+          # Auto-fix the 2 typos in PlayerActivity.kt & ensure org.json testImplementation
+          python3 - << 'PYEOF'
+          p = "app/src/main/java/com/harindra/iptvpro/PlayerActivity.kt"
+          s = open(p, encoding="utf-8").read()
+          s = s.replace('"Filter: "$q""', '"Filter: $q"')
+          s = s.replace('liveFavorites = favoriteIds,', 'liveFavoriteIds = favoriteIds,')
+          open(p, "w", encoding="utf-8").write(s)
+
+          g = "app/build.gradle.kts"
+          gs = open(g, encoding="utf-8").read()
+          if "org.json:json" not in gs:
+              gs = gs.replace(
+                  'testImplementation("junit:junit:4.13.2")',
+                  'testImplementation("junit:junit:4.13.2")\n    testImplementation("org.json:json:20240303")'
+              )
+              open(g, "w", encoding="utf-8").write(gs)
+          print("Auto-patch applied cleanly.")
+          PYEOF
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
